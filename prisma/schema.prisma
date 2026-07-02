@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Papel do usuário: "DONO" ou "PREPARADOR"
+// (SQLite não suporta enums; a validação é feita na aplicação)
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  role         String
+  createdAt    DateTime @default(now())
+
+  mfaCodes      MfaCode[]
+  carsOwned     Car[]          @relation("CarOwner")
+  carsPrepared  Car[]          @relation("CarPreparador")
+  modifications Modification[]
+}
+
+// Código MFA de uso único enviado por e-mail
+model MfaCode {
+  id         String    @id @default(cuid())
+  userId     String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Car {
+  id           String  @id @default(cuid())
+  ownerId      String
+  preparadorId String?
+
+  // Identificação do veículo
+  brand   String
+  model   String
+  year    Int
+  plate   String?
+  chassis String?
+  color   String?
+
+  // Categoria homologada pela CBA ou "ENTUSIASTA"
+  category String
+
+  // Ficha técnica base
+  engine String? // motor (ex.: 2.0 16v turbo)
+  power  Int? // potência em cv
+  fuel   String? // combustível
+  weight Int? // peso em kg
+  notes  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner         User           @relation("CarOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  preparador    User?          @relation("CarPreparador", fields: [preparadorId], references: [id], onDelete: SetNull)
+  modifications Modification[]
+
+  @@index([ownerId])
+  @@index([preparadorId])
+}
+
+// Mudanças e adaptações do carro (motorização, estética, etc.)
+model Modification {
+  id          String  @id @default(cuid())
+  carId       String
+  createdById String?
+
+  type        String // "MOTORIZACAO" | "ESTETICA" | "SUSPENSAO" | "FREIOS" | "SEGURANCA" | "OUTROS"
+  title       String
+  description String?
+  status      String @default("PLANEJADA") // "PLANEJADA" | "EM_ANDAMENTO" | "CONCLUIDA"
+  cost        Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  car       Car   @relation(fields: [carId], references: [id], onDelete: Cascade)
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([carId])
+}
