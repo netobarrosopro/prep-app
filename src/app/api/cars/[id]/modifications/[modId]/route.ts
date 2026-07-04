@@ -12,7 +12,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (!access) return NextResponse.json({ error: "Não autorizado." }, { status: 404 });
 
   const existing = await prisma.modification.findFirst({
-    where: { id: modId, carId: id },
+    where: { id: modId, carChassis: access.car.chassis },
   });
   if (!existing) {
     return NextResponse.json({ error: "Modificação não encontrada." }, { status: 404 });
@@ -63,7 +63,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   if (!access) return NextResponse.json({ error: "Não autorizado." }, { status: 404 });
 
   const existing = await prisma.modification.findFirst({
-    where: { id: modId, carId: id },
+    where: { id: modId, carChassis: access.car.chassis },
   });
   if (!existing) {
     return NextResponse.json({ error: "Modificação não encontrada." }, { status: 404 });

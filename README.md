@@ -23,8 +23,11 @@ além da categoria **Entusiasta** para projetos de rua/hobby.
 - Mensagens de erro genéricas para evitar enumeração de usuários.
 
 ### Carros e modificações
-- Cadastro do carro por **marca, modelo, ano, placa, chassi, cor** e ficha
-  técnica (motor, potência, combustível, peso).
+- Cadastro do carro por **marca, modelo, ano, placa, cor** e ficha
+  técnica (motor, potência, combustível, peso), com o **chassi como chave
+  primária** (identificador único do carro).
+- **Edição completa do cadastro**: o dono altera qualquer informação
+  (inclusive o chassi); o preparador atualiza a ficha técnica.
 - Categoria do projeto: **Turismo Nacional, Marcas, Stock Car, Fórmula,
   Protótipos, Arrancada, Rally, Velocidade na Terra, Drift, Autocross,
   Endurance, Clássicos** (CBA) ou **Entusiasta**.

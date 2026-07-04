@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { findCarForUser } from "@/lib/car-access";
+import { findCarForUser, CHASSIS_RE, normalizeChassis } from "@/lib/car-access";
 import { CATEGORIES } from "@/lib/constants";
 
+// O parâmetro [id] da rota é o chassi do carro (chave primária)
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_req: NextRequest, { params }: Params) {
@@ -12,8 +13,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
   return NextResponse.json({ car: access.car });
 }
 
-// Atualiza o carro.
-// Dono: todos os campos, incluindo troca de preparador.
+// Atualiza o cadastro do carro.
+// Dono: todos os campos, incluindo o próprio chassi e a troca de preparador.
 // Preparador: apenas ficha técnica (motor, potência, combustível, peso, observações).
 export async function PATCH(req: NextRequest, { params }: Params) {
   const { id } = await params;
@@ -34,8 +35,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   // Campos restritos ao dono
   if (access.isOwner) {
-    if (body.brand !== undefined) data.brand = String(body.brand).trim();
-    if (body.model !== undefined) data.model = String(body.model).trim();
+    if (body.brand !== undefined) {
+      const brand = String(body.brand).trim();
+      if (!brand) return NextResponse.json({ error: "Marca obrigatória." }, { status: 400 });
+      data.brand = brand;
+    }
+    if (body.model !== undefined) {
+      const model = String(body.model).trim();
+      if (!model) return NextResponse.json({ error: "Modelo obrigatório." }, { status: 400 });
+      data.model = model;
+    }
     if (body.year !== undefined) {
       const year = Number(body.year);
       if (!Number.isInteger(year) || year < 1900 || year > new Date().getFullYear() + 1) {
@@ -50,8 +59,29 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       data.category = String(body.category);
     }
     if (body.plate !== undefined) data.plate = String(body.plate).trim().toUpperCase() || null;
-    if (body.chassis !== undefined) data.chassis = String(body.chassis).trim() || null;
     if (body.color !== undefined) data.color = String(body.color).trim() || null;
+
+    // Troca de chassi (chave primária): valida formato e duplicidade;
+    // as modificações são atualizadas em cascata.
+    if (body.chassis !== undefined) {
+      const chassis = normalizeChassis(body.chassis);
+      if (!CHASSIS_RE.test(chassis)) {
+        return NextResponse.json(
+          { error: "Chassi inválido: 3–30 caracteres (letras, números e hífen)." },
+          { status: 400 }
+        );
+      }
+      if (chassis !== access.car.chassis) {
+        const duplicate = await prisma.car.findUnique({ where: { chassis } });
+        if (duplicate) {
+          return NextResponse.json(
+            { error: `Já existe um carro cadastrado com o chassi ${chassis}.` },
+            { status: 409 }
+          );
+        }
+        data.chassis = chassis;
+      }
+    }
 
     if (body.preparadorUsername !== undefined) {
       const username = String(body.preparadorUsername).trim();
@@ -70,7 +100,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
   }
 
-  const car = await prisma.car.update({ where: { id }, data });
+  const car = await prisma.car.update({
+    where: { chassis: access.car.chassis },
+    data,
+  });
   return NextResponse.json({ ok: true, car });
 }
 
@@ -81,6 +114,6 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   if (!access || !access.isOwner) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 404 });
   }
-  await prisma.car.delete({ where: { id } });
+  await prisma.car.delete({ where: { chassis: access.car.chassis } });
   return NextResponse.json({ ok: true });
 }

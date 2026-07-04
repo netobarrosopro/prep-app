@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { CATEGORIES } from "@/lib/constants";
+import { CHASSIS_RE, normalizeChassis } from "@/lib/car-access";
 
 // Lista os carros visíveis ao usuário (dono: seus carros; preparador: carros atribuídos)
 export async function GET() {
@@ -37,10 +38,24 @@ export async function POST(req: NextRequest) {
   const model = String(body?.model ?? "").trim();
   const year = Number(body?.year);
   const category = String(body?.category ?? "");
+  const chassis = normalizeChassis(body?.chassis);
   const preparadorUsername = String(body?.preparadorUsername ?? "").trim();
 
   if (!brand || !model) {
     return NextResponse.json({ error: "Informe marca e modelo." }, { status: 400 });
+  }
+  if (!CHASSIS_RE.test(chassis)) {
+    return NextResponse.json(
+      { error: "Chassi obrigatório: 3–30 caracteres (letras, números e hífen)." },
+      { status: 400 }
+    );
+  }
+  const existing = await prisma.car.findUnique({ where: { chassis } });
+  if (existing) {
+    return NextResponse.json(
+      { error: `Já existe um carro cadastrado com o chassi ${chassis}.` },
+      { status: 409 }
+    );
   }
   const currentYear = new Date().getFullYear();
   if (!Number.isInteger(year) || year < 1900 || year > currentYear + 1) {
@@ -66,6 +81,7 @@ export async function POST(req: NextRequest) {
 
   const car = await prisma.car.create({
     data: {
+      chassis,
       ownerId: session.sub,
       preparadorId,
       brand,
@@ -73,7 +89,6 @@ export async function POST(req: NextRequest) {
       year,
       category,
       plate: body?.plate ? String(body.plate).trim().toUpperCase() : null,
-      chassis: body?.chassis ? String(body.chassis).trim() : null,
       color: body?.color ? String(body.color).trim() : null,
       engine: body?.engine ? String(body.engine).trim() : null,
       power: body?.power ? Number(body.power) || null : null,

@@ -52,7 +52,11 @@ export default async function DashboardPage() {
       ) : (
         <div className="card-grid">
           {cars.map((car) => (
-            <Link key={car.id} href={`/cars/${car.id}`} className="car-card">
+            <Link
+              key={car.chassis}
+              href={`/cars/${encodeURIComponent(car.chassis)}`}
+              className="car-card"
+            >
               <h2>
                 {car.brand} {car.model} {car.year}
               </h2>
@@ -62,6 +66,8 @@ export default async function DashboardPage() {
                 </span>
               </p>
               <p className="meta" style={{ marginTop: 8 }}>
+                Chassi: {car.chassis}
+                <br />
                 Dono: {car.owner.username}
                 <br />
                 Preparador: {car.preparador?.username ?? "não atribuído"}

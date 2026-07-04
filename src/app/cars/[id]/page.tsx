@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { findCarForUser } from "@/lib/car-access";
 import {
@@ -24,11 +25,12 @@ export default async function CarPage({
   if (!access) notFound();
 
   const { car, isOwner } = access;
+  const carPath = encodeURIComponent(car.chassis);
 
   const specs: Array<[string, string | null]> = [
     ["Categoria", CATEGORY_LABELS[car.category as Category] ?? car.category],
-    ["Placa", car.plate],
     ["Chassi", car.chassis],
+    ["Placa", car.plate],
     ["Cor", car.color],
     ["Motor", car.engine],
     ["Potência", car.power ? `${car.power} cv` : null],
@@ -42,8 +44,13 @@ export default async function CarPage({
         <h1>
           {car.brand} {car.model} {car.year}
         </h1>
-        <span className="badge cat">
-          {CATEGORY_LABELS[car.category as Category] ?? car.category}
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
+          <span className="badge cat">
+            {CATEGORY_LABELS[car.category as Category] ?? car.category}
+          </span>
+          <Link href={`/cars/${carPath}/edit`} className="btn secondary">
+            Editar cadastro
+          </Link>
         </span>
       </div>
 
@@ -70,12 +77,12 @@ export default async function CarPage({
         {car.notes && (
           <p style={{ marginTop: 16, color: "var(--text-muted)" }}>{car.notes}</p>
         )}
-        {isOwner && <AssignPreparador carId={car.id} current={car.preparador?.username} />}
+        {isOwner && <AssignPreparador carId={carPath} current={car.preparador?.username} />}
       </section>
 
       <section className="panel">
         <h2>Mudanças e adaptações</h2>
-        <ModificationForm carId={car.id} />
+        <ModificationForm carId={carPath} />
 
         {car.modifications.length === 0 ? (
           <div className="empty-state" style={{ marginTop: 16 }}>
@@ -109,7 +116,7 @@ export default async function CarPage({
                     {new Date(mod.createdAt).toLocaleDateString("pt-BR")}
                   </span>
                   <ModStatusControl
-                    carId={car.id}
+                    carId={carPath}
                     modId={mod.id}
                     status={mod.status}
                   />

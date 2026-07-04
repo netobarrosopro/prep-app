@@ -27,7 +27,7 @@ export default function NewCarPage() {
       setError(data.error ?? "Erro ao cadastrar o carro.");
       return;
     }
-    router.push(`/cars/${data.car.id}`);
+    router.push(`/cars/${encodeURIComponent(data.car.chassis)}`);
     router.refresh();
   }
 
@@ -69,12 +69,20 @@ export default function NewCarPage() {
             </select>
           </div>
           <div className="field">
-            <label htmlFor="plate">Placa</label>
-            <input id="plate" name="plate" placeholder="ABC1D23" />
+            <label htmlFor="chassis">Chassi * (identificador único do carro)</label>
+            <input
+              id="chassis"
+              name="chassis"
+              placeholder="Ex.: 9BGKS19B0PB123456"
+              pattern="[A-Za-z0-9\-]{3,30}"
+              title="3–30 caracteres: letras, números e hífen"
+              style={{ textTransform: "uppercase" }}
+              required
+            />
           </div>
           <div className="field">
-            <label htmlFor="chassis">Chassi</label>
-            <input id="chassis" name="chassis" />
+            <label htmlFor="plate">Placa</label>
+            <input id="plate" name="plate" placeholder="ABC1D23" />
           </div>
           <div className="field">
             <label htmlFor="color">Cor</label>

@@ -3,16 +3,23 @@ import { getSession, type SessionPayload } from "./session";
 
 export type CarWithRelations = NonNullable<Awaited<ReturnType<typeof findCarForUser>>>["car"];
 
+// Chassi: 3–30 caracteres, letras/números/hífen (normalizado em maiúsculas)
+export const CHASSIS_RE = /^[A-Z0-9-]{3,30}$/;
+
+export function normalizeChassis(value: unknown): string {
+  return String(value ?? "").trim().toUpperCase();
+}
+
 /**
- * Carrega um carro e verifica se o usuário da sessão pode acessá-lo
- * (dono ou preparador atribuído).
+ * Carrega um carro pelo chassi (chave primária) e verifica se o usuário
+ * da sessão pode acessá-lo (dono ou preparador atribuído).
  */
-export async function findCarForUser(carId: string) {
+export async function findCarForUser(chassis: string) {
   const session = await getSession();
   if (!session) return null;
 
   const car = await prisma.car.findUnique({
-    where: { id: carId },
+    where: { chassis: normalizeChassis(decodeURIComponent(chassis)) },
     include: {
       owner: { select: { id: true, username: true } },
       preparador: { select: { id: true, username: true } },

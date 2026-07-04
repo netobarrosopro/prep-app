@@ -39,17 +39,17 @@ model MfaCode {
 }
 
 model Car {
-  id           String  @id @default(cuid())
+  // O chassi é a chave primária do cadastro do carro
+  chassis      String  @id
   ownerId      String
   preparadorId String?
 
   // Identificação do veículo
-  brand   String
-  model   String
-  year    Int
-  plate   String?
-  chassis String?
-  color   String?
+  brand String
+  model String
+  year  Int
+  plate String?
+  color String?
 
   // Categoria homologada pela CBA ou "ENTUSIASTA"
   category String
@@ -75,7 +75,7 @@ model Car {
 // Mudanças e adaptações do carro (motorização, estética, etc.)
 model Modification {
   id          String  @id @default(cuid())
-  carId       String
+  carChassis  String
   createdById String?
 
   type        String // "MOTORIZACAO" | "ESTETICA" | "SUSPENSAO" | "FREIOS" | "SEGURANCA" | "OUTROS"
@@ -87,8 +87,8 @@ model Modification {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  car       Car   @relation(fields: [carId], references: [id], onDelete: Cascade)
+  car       Car   @relation(fields: [carChassis], references: [chassis], onDelete: Cascade, onUpdate: Cascade)
   createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
-  @@index([carId])
+  @@index([carChassis])
 }

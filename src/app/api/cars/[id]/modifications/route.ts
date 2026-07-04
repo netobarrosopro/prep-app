@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   const modification = await prisma.modification.create({
     data: {
-      carId: id,
+      carChassis: access.car.chassis,
       createdById: access.session.sub,
       type,
       title,
