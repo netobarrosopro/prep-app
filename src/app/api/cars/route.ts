@@ -3,9 +3,10 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { CATEGORIES } from "@/lib/constants";
 import { CHASSIS_RE, normalizeChassis } from "@/lib/car-access";
+import { withDbErrors } from "@/lib/db-errors";
 
 // Lista os carros visíveis ao usuário (dono: seus carros; preparador: carros atribuídos)
-export async function GET() {
+async function handleGET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
 
@@ -23,7 +24,7 @@ export async function GET() {
 }
 
 // Cadastra um novo carro (somente Dono)
-export async function POST(req: NextRequest) {
+async function handlePOST(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   if (session.role !== "DONO") {
@@ -97,6 +98,8 @@ export async function POST(req: NextRequest) {
       notes: body?.notes ? String(body.notes).trim() : null,
     },
   });
-
   return NextResponse.json({ ok: true, car }, { status: 201 });
 }
+
+export const GET = withDbErrors(handleGET);
+export const POST = withDbErrors(handlePOST);

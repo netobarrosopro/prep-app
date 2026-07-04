@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { findCarForUser, CHASSIS_RE, normalizeChassis } from "@/lib/car-access";
 import { CATEGORIES } from "@/lib/constants";
+import { withDbErrors } from "@/lib/db-errors";
 
 // O parâmetro [id] da rota é o chassi do carro (chave primária)
 type Params = { params: Promise<{ id: string }> };
 
-export async function GET(_req: NextRequest, { params }: Params) {
+async function handleGET(_req: NextRequest, { params }: Params) {
   const { id } = await params;
   const access = await findCarForUser(id);
   if (!access) return NextResponse.json({ error: "Não autorizado." }, { status: 404 });
@@ -16,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 // Atualiza o cadastro do carro.
 // Dono: todos os campos, incluindo o próprio chassi e a troca de preparador.
 // Preparador: apenas ficha técnica (motor, potência, combustível, peso, observações).
-export async function PATCH(req: NextRequest, { params }: Params) {
+async function handlePATCH(req: NextRequest, { params }: Params) {
   const { id } = await params;
   const access = await findCarForUser(id);
   if (!access) return NextResponse.json({ error: "Não autorizado." }, { status: 404 });
@@ -108,7 +109,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 // Remove o carro (somente Dono)
-export async function DELETE(_req: NextRequest, { params }: Params) {
+async function handleDELETE(_req: NextRequest, { params }: Params) {
   const { id } = await params;
   const access = await findCarForUser(id);
   if (!access || !access.isOwner) {
@@ -117,3 +118,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   await prisma.car.delete({ where: { chassis: access.car.chassis } });
   return NextResponse.json({ ok: true });
 }
+
+export const GET = withDbErrors(handleGET);
+export const PATCH = withDbErrors(handlePATCH);
+export const DELETE = withDbErrors(handleDELETE);

@@ -3,8 +3,9 @@ import { prisma } from "@/lib/db";
 import { verifyPasswordSafe, issueMfaCode } from "@/lib/auth";
 import { createMfaPending } from "@/lib/session";
 import { rateLimit } from "@/lib/rate-limit";
+import { withDbErrors } from "@/lib/db-errors";
 
-export async function POST(req: NextRequest) {
+async function handlePOST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "local";
 
   const body = await req.json().catch(() => null);
@@ -37,3 +38,5 @@ export async function POST(req: NextRequest) {
   const maskedEmail = user.email.replace(/^(.{2}).*(@.*)$/, "$1***$2");
   return NextResponse.json({ ok: true, next: "/verify", email: maskedEmail });
 }
+
+export const POST = withDbErrors(handlePOST);

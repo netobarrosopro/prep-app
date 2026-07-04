@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { findCarForUser } from "@/lib/car-access";
 import { MOD_TYPES, MOD_STATUSES } from "@/lib/constants";
+import { withDbErrors } from "@/lib/db-errors";
 
 type Params = { params: Promise<{ id: string }> };
 
 // Registra uma mudança/adaptação no carro (dono ou preparador atribuído)
-export async function POST(req: NextRequest, { params }: Params) {
+async function handlePOST(req: NextRequest, { params }: Params) {
   const { id } = await params;
   const access = await findCarForUser(id);
   if (!access) return NextResponse.json({ error: "Não autorizado." }, { status: 404 });
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       cost,
     },
   });
-
   return NextResponse.json({ ok: true, modification }, { status: 201 });
 }
+
+export const POST = withDbErrors(handlePOST);

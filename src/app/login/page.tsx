@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { jsonRequest } from "@/lib/client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,22 +16,17 @@ export default function LoginPage() {
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: form.get("username"),
-        password: form.get("password"),
-      }),
+    const result = await jsonRequest("/api/auth/login", "POST", {
+      username: form.get("username"),
+      password: form.get("password"),
     });
-    const data = await res.json();
     setLoading(false);
 
-    if (!res.ok) {
-      setError(data.error ?? "Erro ao entrar.");
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
-    router.push(`/verify?email=${encodeURIComponent(data.email ?? "")}`);
+    router.push(`/verify?email=${encodeURIComponent(String(result.data.email ?? ""))}`);
   }
 
   return (

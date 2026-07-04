@@ -3,11 +3,12 @@ import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { ROLES } from "@/lib/constants";
+import { withDbErrors } from "@/lib/db-errors";
 
 const USERNAME_RE = /^[a-zA-Z0-9_.-]{3,30}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export async function POST(req: NextRequest) {
+async function handlePOST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "local";
   const limit = rateLimit(`register:${ip}`, 10, 60 * 60 * 1000);
   if (!limit.ok) {
@@ -61,3 +62,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }
+
+export const POST = withDbErrors(handlePOST);

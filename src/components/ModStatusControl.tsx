@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MOD_STATUSES, MOD_STATUS_LABELS } from "@/lib/constants";
+import { jsonRequest } from "@/lib/client";
 
 export function ModStatusControl({
   carId,
@@ -18,20 +19,20 @@ export function ModStatusControl({
 
   async function update(newStatus: string) {
     setLoading(true);
-    await fetch(`/api/cars/${carId}/modifications/${modId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
+    const result = await jsonRequest(`/api/cars/${carId}/modifications/${modId}`, "PATCH", {
+      status: newStatus,
     });
     setLoading(false);
+    if (!result.ok) alert(result.error);
     router.refresh();
   }
 
   async function remove() {
     if (!confirm("Remover esta modificação?")) return;
     setLoading(true);
-    await fetch(`/api/cars/${carId}/modifications/${modId}`, { method: "DELETE" });
+    const result = await jsonRequest(`/api/cars/${carId}/modifications/${modId}`, "DELETE");
     setLoading(false);
+    if (!result.ok) alert(result.error);
     router.refresh();
   }
 

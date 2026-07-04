@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CATEGORIES, CATEGORY_LABELS } from "@/lib/constants";
+import { jsonRequest, sanitizeChassisInput } from "@/lib/client";
 
 export default function NewCarPage() {
   const router = useRouter();
@@ -15,19 +16,19 @@ export default function NewCarPage() {
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
-    const res = await fetch("/api/cars", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(form.entries())),
-    });
-    const data = await res.json();
+    const result = await jsonRequest(
+      "/api/cars",
+      "POST",
+      Object.fromEntries(form.entries())
+    );
     setLoading(false);
 
-    if (!res.ok) {
-      setError(data.error ?? "Erro ao cadastrar o carro.");
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
-    router.push(`/cars/${encodeURIComponent(data.car.chassis)}`);
+    const car = result.data.car as { chassis: string };
+    router.push(`/cars/${encodeURIComponent(car.chassis)}`);
     router.refresh();
   }
 
@@ -76,7 +77,9 @@ export default function NewCarPage() {
               placeholder="Ex.: 9BGKS19B0PB123456"
               pattern="[A-Za-z0-9\-]{3,30}"
               title="3–30 caracteres: letras, números e hífen"
-              style={{ textTransform: "uppercase" }}
+              minLength={3}
+              maxLength={30}
+              onInput={sanitizeChassisInput}
               required
             />
           </div>

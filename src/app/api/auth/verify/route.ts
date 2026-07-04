@@ -3,8 +3,9 @@ import { prisma } from "@/lib/db";
 import { consumeMfaCode } from "@/lib/auth";
 import { getMfaPending, createSession } from "@/lib/session";
 import { rateLimit } from "@/lib/rate-limit";
+import { withDbErrors } from "@/lib/db-errors";
 
-export async function POST(req: NextRequest) {
+async function handlePOST(req: NextRequest) {
   const pending = await getMfaPending();
   if (!pending) {
     return NextResponse.json(
@@ -45,3 +46,5 @@ export async function POST(req: NextRequest) {
   await createSession(user);
   return NextResponse.json({ ok: true, next: "/dashboard" });
 }
+
+export const POST = withDbErrors(handlePOST);

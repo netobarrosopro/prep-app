@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { findCarForUser } from "@/lib/car-access";
 import { MOD_STATUSES, MOD_TYPES } from "@/lib/constants";
+import { withDbErrors } from "@/lib/db-errors";
 
 type Params = { params: Promise<{ id: string; modId: string }> };
 
 // Atualiza uma modificação (dono ou preparador atribuído)
-export async function PATCH(req: NextRequest, { params }: Params) {
+async function handlePATCH(req: NextRequest, { params }: Params) {
   const { id, modId } = await params;
   const access = await findCarForUser(id);
   if (!access) return NextResponse.json({ error: "Não autorizado." }, { status: 404 });
@@ -57,7 +58,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 // Remove uma modificação (dono ou preparador atribuído)
-export async function DELETE(_req: NextRequest, { params }: Params) {
+async function handleDELETE(_req: NextRequest, { params }: Params) {
   const { id, modId } = await params;
   const access = await findCarForUser(id);
   if (!access) return NextResponse.json({ error: "Não autorizado." }, { status: 404 });
@@ -72,3 +73,6 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   await prisma.modification.delete({ where: { id: modId } });
   return NextResponse.json({ ok: true });
 }
+
+export const PATCH = withDbErrors(handlePATCH);
+export const DELETE = withDbErrors(handleDELETE);

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CATEGORIES, CATEGORY_LABELS } from "@/lib/constants";
+import { jsonRequest, sanitizeChassisInput } from "@/lib/client";
 
 interface CarData {
   chassis: string;
@@ -32,20 +33,20 @@ export function CarEditForm({ car, isOwner }: { car: CarData; isOwner: boolean }
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
-    const res = await fetch(`/api/cars/${encodeURIComponent(car.chassis)}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(form.entries())),
-    });
-    const data = await res.json();
+    const result = await jsonRequest(
+      `/api/cars/${encodeURIComponent(car.chassis)}`,
+      "PATCH",
+      Object.fromEntries(form.entries())
+    );
     setLoading(false);
 
-    if (!res.ok) {
-      setError(data.error ?? "Erro ao salvar as alterações.");
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
     // Se o chassi mudou, a URL do carro muda junto
-    router.push(`/cars/${encodeURIComponent(data.car.chassis)}`);
+    const updated = result.data.car as { chassis: string };
+    router.push(`/cars/${encodeURIComponent(updated.chassis)}`);
     router.refresh();
   }
 
@@ -54,14 +55,17 @@ export function CarEditForm({ car, isOwner }: { car: CarData; isOwner: boolean }
       return;
     }
     setLoading(true);
-    const res = await fetch(`/api/cars/${encodeURIComponent(car.chassis)}`, {
-      method: "DELETE",
-    });
+    const result = await jsonRequest(
+      `/api/cars/${encodeURIComponent(car.chassis)}`,
+      "DELETE"
+    );
     setLoading(false);
-    if (res.ok) {
-      router.push("/dashboard");
-      router.refresh();
+    if (!result.ok) {
+      setError(result.error);
+      return;
     }
+    router.push("/dashboard");
+    router.refresh();
   }
 
   return (
@@ -108,7 +112,9 @@ export function CarEditForm({ car, isOwner }: { car: CarData; isOwner: boolean }
                 defaultValue={car.chassis}
                 pattern="[A-Za-z0-9\-]{3,30}"
                 title="3–30 caracteres: letras, números e hífen"
-                style={{ textTransform: "uppercase" }}
+                minLength={3}
+                maxLength={30}
+                onInput={sanitizeChassisInput}
                 required
               />
             </div>

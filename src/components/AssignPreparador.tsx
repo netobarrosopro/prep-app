@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { jsonRequest } from "@/lib/client";
 
 export function AssignPreparador({
   carId,
@@ -20,16 +21,13 @@ export function AssignPreparador({
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
-    const res = await fetch(`/api/cars/${carId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ preparadorUsername: form.get("preparadorUsername") }),
+    const result = await jsonRequest(`/api/cars/${carId}`, "PATCH", {
+      preparadorUsername: form.get("preparadorUsername"),
     });
-    const data = await res.json();
     setLoading(false);
 
-    if (!res.ok) {
-      setError(data.error ?? "Erro ao atribuir preparador.");
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
     router.refresh();

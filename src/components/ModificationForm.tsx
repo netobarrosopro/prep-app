@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MOD_TYPES, MOD_TYPE_LABELS, MOD_STATUSES, MOD_STATUS_LABELS } from "@/lib/constants";
+import { jsonRequest } from "@/lib/client";
 
 export function ModificationForm({ carId }: { carId: string }) {
   const router = useRouter();
@@ -16,16 +17,15 @@ export function ModificationForm({ carId }: { carId: string }) {
 
     const formEl = e.currentTarget;
     const form = new FormData(formEl);
-    const res = await fetch(`/api/cars/${carId}/modifications`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(form.entries())),
-    });
-    const data = await res.json();
+    const result = await jsonRequest(
+      `/api/cars/${carId}/modifications`,
+      "POST",
+      Object.fromEntries(form.entries())
+    );
     setLoading(false);
 
-    if (!res.ok) {
-      setError(data.error ?? "Erro ao registrar a modificação.");
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
     formEl.reset();

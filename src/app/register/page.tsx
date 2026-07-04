@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { jsonRequest } from "@/lib/client";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -20,21 +21,16 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: form.get("username"),
-        email: form.get("email"),
-        password: form.get("password"),
-        role: form.get("role"),
-      }),
+    const result = await jsonRequest("/api/auth/register", "POST", {
+      username: form.get("username"),
+      email: form.get("email"),
+      password: form.get("password"),
+      role: form.get("role"),
     });
-    const data = await res.json();
     setLoading(false);
 
-    if (!res.ok) {
-      setError(data.error ?? "Erro ao cadastrar.");
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
     router.push("/login?registered=1");

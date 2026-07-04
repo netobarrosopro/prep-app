@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { jsonRequest } from "@/lib/client";
 
 function VerifyForm() {
   const router = useRouter();
@@ -17,16 +18,13 @@ function VerifyForm() {
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
-    const res = await fetch("/api/auth/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: form.get("code") }),
+    const result = await jsonRequest("/api/auth/verify", "POST", {
+      code: form.get("code"),
     });
-    const data = await res.json();
     setLoading(false);
 
-    if (!res.ok) {
-      setError(data.error ?? "Erro ao verificar o código.");
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
     router.push("/dashboard");
