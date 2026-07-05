@@ -9,8 +9,8 @@ além da categoria **Entusiasta** para projetos de rua/hobby.
 ### Perfis de acesso
 - **Dono**: cadastra seus carros, define a categoria, atribui um preparador e
   acompanha as modificações.
-- **Preparador**: acessa os carros atribuídos a ele, atualiza a ficha técnica e
-  registra as mudanças e adaptações realizadas.
+- **Preparador**: acessa os carros atribuídos a ele e registra as mudanças e
+  adaptações realizadas (não edita os dados do cadastro do carro).
 
 ### Segurança (duplo fator de autenticação)
 - Login em duas etapas: **usuário + senha** e, em seguida, **código de
@@ -26,8 +26,8 @@ além da categoria **Entusiasta** para projetos de rua/hobby.
 - Cadastro do carro por **marca, modelo, ano, placa, cor** e ficha
   técnica (motor, potência, combustível, peso), com o **chassi como chave
   primária** (identificador único do carro).
-- **Edição completa do cadastro**: o dono altera qualquer informação
-  (inclusive o chassi); o preparador atualiza a ficha técnica.
+- **Edição do cadastro somente pelo dono**: o dono altera qualquer informação
+  (inclusive o chassi); o preparador não edita os dados do carro.
 - Categoria do projeto: **Turismo Nacional, Marcas, Stock Car, Fórmula,
   Protótipos, Arrancada, Rally, Velocidade na Terra, Drift, Autocross,
   Endurance, Clássicos** (CBA) ou **Entusiasta**.

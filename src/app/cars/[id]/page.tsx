@@ -48,9 +48,11 @@ export default async function CarPage({
           <span className="badge cat">
             {CATEGORY_LABELS[car.category as Category] ?? car.category}
           </span>
-          <Link href={`/cars/${carPath}/edit`} className="btn secondary">
-            Editar cadastro
-          </Link>
+          {isOwner && (
+            <Link href={`/cars/${carPath}/edit`} className="btn secondary">
+              Editar cadastro
+            </Link>
+          )}
         </span>
       </div>
 

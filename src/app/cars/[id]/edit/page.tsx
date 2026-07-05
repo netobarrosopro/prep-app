@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { findCarForUser } from "@/lib/car-access";
 import { CarEditForm } from "@/components/CarEditForm";
 
@@ -15,6 +15,9 @@ export default async function EditCarPage({
 
   const { car, isOwner } = access;
 
+  // Somente o dono edita os dados do carro; o preparador volta ao detalhe
+  if (!isOwner) redirect(`/cars/${encodeURIComponent(car.chassis)}`);
+
   return (
     <main className="container">
       <div className="page-title">
@@ -23,7 +26,6 @@ export default async function EditCarPage({
         </h1>
       </div>
       <CarEditForm
-        isOwner={isOwner}
         car={{
           chassis: car.chassis,
           brand: car.brand,

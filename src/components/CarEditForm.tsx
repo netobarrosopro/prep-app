@@ -22,7 +22,8 @@ interface CarData {
   preparadorUsername: string;
 }
 
-export function CarEditForm({ car, isOwner }: { car: CarData; isOwner: boolean }) {
+// Renderizado apenas para o dono do carro (a página de edição bloqueia o preparador)
+export function CarEditForm({ car }: { car: CarData }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -72,8 +73,7 @@ export function CarEditForm({ car, isOwner }: { car: CarData; isOwner: boolean }
     <>
       {error && <div className="error-box">{error}</div>}
       <form onSubmit={handleSubmit} className="panel">
-        {isOwner && (
-          <div className="form-grid">
+        <div className="form-grid">
             <div className="field">
               <label htmlFor="brand">Marca *</label>
               <input id="brand" name="brand" defaultValue={car.brand} required />
@@ -135,8 +135,7 @@ export function CarEditForm({ car, isOwner }: { car: CarData; isOwner: boolean }
                 placeholder="deixe vazio para remover"
               />
             </div>
-          </div>
-        )}
+        </div>
 
         <h2 style={{ fontSize: 15, margin: "8px 0 16px", color: "var(--text-muted)" }}>
           Ficha técnica
@@ -181,17 +180,15 @@ export function CarEditForm({ car, isOwner }: { car: CarData; isOwner: boolean }
           <Link href={`/cars/${encodeURIComponent(car.chassis)}`} className="btn secondary">
             Cancelar
           </Link>
-          {isOwner && (
-            <button
-              type="button"
-              className="secondary"
-              style={{ marginLeft: "auto", color: "var(--accent-hover)" }}
-              disabled={loading}
-              onClick={handleDelete}
-            >
-              Excluir carro
-            </button>
-          )}
+          <button
+            type="button"
+            className="secondary"
+            style={{ marginLeft: "auto", color: "var(--accent-hover)" }}
+            disabled={loading}
+            onClick={handleDelete}
+          >
+            Excluir carro
+          </button>
         </div>
       </form>
     </>
