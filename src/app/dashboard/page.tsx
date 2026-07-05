@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/session";
+import { getSessionUser } from "@/lib/auth-user";
 import { CATEGORY_LABELS, type Category } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const session = await getSession();
-  if (!session) redirect("/login");
+  // Valida a sessão contra o banco: se o usuário não existe mais
+  // (ex.: banco recriado), volta para o login
+  const auth = await getSessionUser();
+  if (!auth) redirect("/login");
+  const { session } = auth;
 
   const cars = await prisma.car.findMany({
     where: { OR: [{ ownerId: session.sub }, { preparadorId: session.sub }] },

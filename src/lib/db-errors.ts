@@ -15,6 +15,20 @@ export function dbErrorResponse(error: unknown): NextResponse {
     );
   }
 
+  // Chave estrangeira violada: um registro relacionado não existe mais
+  // (ex.: usuário da sessão foi apagado ao recriar o banco de dados)
+  if (code === "P2003") {
+    return NextResponse.json(
+      {
+        error:
+          "Referência inválida: um registro relacionado não existe mais. " +
+          "Se você recriou o banco de dados recentemente, saia (botão Sair) e " +
+          "faça login novamente.",
+      },
+      { status: 409 }
+    );
+  }
+
   // Schema do banco desatualizado (coluna/tabela antiga ou constraint órfã)
   if (code === "P2011" || code === "P2021" || code === "P2022") {
     return NextResponse.json(

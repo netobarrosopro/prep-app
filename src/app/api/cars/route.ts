@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/session";
 import { CATEGORIES } from "@/lib/constants";
 import { CHASSIS_RE, normalizeChassis } from "@/lib/car-access";
 import { withDbErrors } from "@/lib/db-errors";
+import { requireSessionUser, SESSION_INVALID_MESSAGE } from "@/lib/auth-user";
 
 // Lista os carros visíveis ao usuário (dono: seus carros; preparador: carros atribuídos)
 async function handleGET() {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const auth = await requireSessionUser();
+  if (!auth) {
+    return NextResponse.json({ error: SESSION_INVALID_MESSAGE }, { status: 401 });
+  }
+  const { session } = auth;
 
   const cars = await prisma.car.findMany({
     where: { OR: [{ ownerId: session.sub }, { preparadorId: session.sub }] },
@@ -25,8 +28,11 @@ async function handleGET() {
 
 // Cadastra um novo carro (somente Dono)
 async function handlePOST(req: NextRequest) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  const auth = await requireSessionUser();
+  if (!auth) {
+    return NextResponse.json({ error: SESSION_INVALID_MESSAGE }, { status: 401 });
+  }
+  const { session } = auth;
   if (session.role !== "DONO") {
     return NextResponse.json(
       { error: "Apenas o dono pode cadastrar um carro." },
