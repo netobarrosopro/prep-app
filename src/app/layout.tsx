@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { ROLE_LABELS } from "@/lib/constants";
@@ -9,6 +9,20 @@ export const metadata: Metadata = {
   title: "Prep App — Gerenciador de carros preparados",
   description:
     "Gerencie projetos de carros preparados nas categorias homologadas pela CBA e Entusiasta.",
+  manifest: "/manifest.webmanifest",
+  icons: { icon: "/icon.svg" },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Prep App",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0d1017",
 };
 
 export default async function RootLayout({

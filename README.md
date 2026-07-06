@@ -66,6 +66,59 @@ Acesse `http://localhost:3000`.
 > **Dica (desenvolvimento):** sem SMTP configurado, o código MFA é exibido no
 > console do servidor (`[DEV] Código MFA para ...`).
 
+## Rodando no Android (Capacitor)
+
+O app nativo é uma casca (WebView via [Capacitor](https://capacitorjs.com))
+que carrega o servidor Next.js — o projeto Android já está gerado em
+`android/`. Também é um **PWA** (manifesto + ícone), instalável direto do
+navegador do celular.
+
+### Pré-requisitos
+- [Android Studio](https://developer.android.com/studio) (inclui SDK e emulador)
+- JDK 17+ (o Android Studio já traz)
+
+### Testar no emulador
+
+```bash
+npm install
+npm run dev            # servidor Next.js na porta 3000 (deixe rodando)
+npm run mobile:sync    # sincroniza a configuração no projeto Android
+npm run mobile:open    # abre o projeto no Android Studio
+```
+
+No Android Studio, clique em **Run** ▶ com um emulador criado. O app abre
+apontando para `http://10.0.2.2:3000` (endereço da sua máquina visto de
+dentro do emulador) — já é o padrão.
+
+### Testar em um celular físico
+
+1. Celular e computador na **mesma rede Wi-Fi**; descubra o IP da máquina
+   (`ipconfig` / `ifconfig`, ex.: `192.168.0.10`).
+2. Sincronize apontando para esse IP e rode no aparelho (modo desenvolvedor
+   + depuração USB ativados):
+
+```bash
+CAP_SERVER_URL="http://192.168.0.10:3000" npm run mobile:sync
+npm run mobile:open
+```
+
+> **MFA no celular:** sem SMTP configurado, o código continua saindo no
+> console do servidor (`npm run dev`). Para receber por e-mail de verdade,
+> preencha as variáveis `SMTP_*` no `.env`.
+
+### Caminho para as lojas
+
+1. **Hospede o servidor** com HTTPS (Vercel, Railway etc.) e troque o SQLite
+   por PostgreSQL/MySQL no `prisma/schema.prisma` (SQLite é só para dev).
+2. Sincronize com a URL pública: `CAP_SERVER_URL="https://seu-dominio.com" npm run mobile:sync`.
+3. **Google Play**: no Android Studio, *Build → Generate Signed App Bundle*
+   (AAB), crie a conta no [Play Console](https://play.google.com/console)
+   (taxa única de US$ 25) e envie primeiro para *teste interno*.
+4. **App Store (iOS)**: requer um Mac com Xcode. Rode
+   `npm install @capacitor/ios && npx cap add ios && npx cap open ios`,
+   assine com sua conta do [Apple Developer Program](https://developer.apple.com)
+   (US$ 99/ano) e distribua primeiro via TestFlight.
+
 ## Fluxo de uso
 
 1. Crie uma conta de **Dono** e outra de **Preparador** (`/register`).
