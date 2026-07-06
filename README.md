@@ -38,8 +38,8 @@ além da categoria **Entusiasta** para projetos de rua/hobby.
 ## Stack
 
 - [Next.js 15](https://nextjs.org/) (App Router, TypeScript)
-- [Prisma](https://www.prisma.io/) + SQLite (troque o datasource para
-  PostgreSQL/MySQL em produção)
+- [Prisma](https://www.prisma.io/) + PostgreSQL (Docker local em dev,
+  Amazon RDS em produção — ver [DEPLOY.md](DEPLOY.md))
 - [jose](https://github.com/panva/jose) (JWT), [bcryptjs](https://github.com/dcodeIO/bcrypt.js),
   [nodemailer](https://nodemailer.com/)
 
@@ -49,17 +49,24 @@ além da categoria **Entusiasta** para projetos de rua/hobby.
 # 1. Instale as dependências
 npm install
 
-# 2. Configure o ambiente
+# 2. Suba o PostgreSQL local (Docker)
+docker compose up -d db
+
+# 3. Configure o ambiente
 cp .env.example .env
 # edite o .env: defina SESSION_SECRET (openssl rand -base64 32)
 # e, opcionalmente, o SMTP para envio real dos códigos MFA
 
-# 3. Crie o banco de dados
+# 4. Crie as tabelas
 npm run db:push
 
-# 4. Inicie em desenvolvimento
+# 5. Inicie em desenvolvimento
 npm run dev
 ```
+
+> Sem Docker? Aponte o `DATABASE_URL` para qualquer PostgreSQL 14+ (local ou
+> na nuvem). Para produção, siga o **[guia de hospedagem](DEPLOY.md)**
+> (AWS EC2 + RDS + Cloudflare).
 
 Acesse `http://localhost:3000`.
 

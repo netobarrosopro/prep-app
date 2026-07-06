@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 // Papel do usuário: "DONO" ou "PREPARADOR"
-// (SQLite não suporta enums; a validação é feita na aplicação)
+// (mantido como String com validação na aplicação)
 model User {
   id           String   @id @default(cuid())
   username     String   @unique

@@ -1,0 +1,18 @@
+# PostgreSQL para desenvolvimento local:
+#   docker compose up -d db
+# DATABASE_URL="postgresql://prep:prep@localhost:5432/prepapp"
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: prep
+      POSTGRES_PASSWORD: prep
+      POSTGRES_DB: prepapp
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
